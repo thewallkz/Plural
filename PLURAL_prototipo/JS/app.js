@@ -5,12 +5,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Dados Simulados e Armazenamento ---
     const books = [
-        { id: 1, title: 'Dom Casmurro', author: 'Machado de Assis', cover: 'https://images-na.ssl-images-amazon.com/images/I/81x4OFVpSML.jpg', description: 'Dom Casmurro é um romance escrito por Machado de Assis...', genre: 'Romance' },
-        { id: 2, title: 'O Cortiço', author: 'Aluísio Azevedo', cover: 'https://images-na.ssl-images-amazon.com/images/I/81Gj9S9Ea8L.jpg', description: 'Obra de Aluísio Azevedo que denuncia a exploração social...', genre: 'Naturalismo' },
-        { id: 3, title: 'Grande Sertão: Veredas', author: 'João Guimarães Rosa', cover: 'https://images-na.ssl-images-amazon.com/images/I/81T1+dM0V2L.jpg', description: 'Narra a história do jagunço Riobaldo...', genre: 'Modernismo' },
-        { id: 4, title: 'Vidas Secas', author: 'Graciliano Ramos', cover: 'https://images-na.ssl-images-amazon.com/images/I/81-3p2+aQZL.jpg', description: 'Retrata a vida de uma família de retirantes nordestinos...', genre: 'Modernismo' },
+        { id: 1, title: 'Dom Casmurro', author: 'Machado de Assis', cover: 'https://m.media-amazon.com/images/I/61x1ZHomWUL.jpg', description: 'Dom Casmurro é um romance escrito por Machado de Assis...', genre: 'Romance' },
+        { id: 2, title: 'O Cortiço', author: 'Aluísio Azevedo', cover: 'https://m.media-amazon.com/images/I/61hI7QLrTkL._UF1000,1000_QL80_.jpg', description: 'Obra de Aluísio Azevedo que denuncia a exploração social...', genre: 'Naturalismo' },
+        { id: 3, title: 'Grande Sertão: Veredas', author: 'João Guimarães Rosa', cover: 'https://m.media-amazon.com/images/I/81NtboFZziL.jpg', description: 'Narra a história do jagunço Riobaldo...', genre: 'Modernismo' },
+        { id: 4, title: 'Vidas Secas', author: 'Graciliano Ramos', cover: 'https://m.media-amazon.com/images/I/618-b9Im6dL._UF1000,1000_QL80_.jpg', description: 'Retrata a vida de uma família de retirantes nordestinos...', genre: 'Modernismo' },
+        { id: 5, title: 'Memórias Póstumas de Brás Cubas', author: 'Machado de Assis', cover: 'https://m.media-amazon.com/images/I/91GAAzBixYL._UF894,1000_QL80_.jpg', description: 'Um defunto autor decide narrar suas memórias e reflexões sobre a vida.', genre: 'Realismo' },
+        { id: 6, title: 'Capitães da Areia', author: 'Jorge Amado', cover: 'https://m.media-amazon.com/images/I/81t7altQZxL.jpg', description: 'A vida de um grupo de meninos de rua em Salvador na década de 1930.', genre: 'Modernismo' },
+        { id: 7, title: 'Macunaíma', author: 'Mário de Andrade', cover: 'https://m.media-amazon.com/images/I/91K-83R88FL._UF1000,1000_QL80_.jpg', description: 'A história do "herói sem nenhum caráter" e suas aventuras pelo Brasil.', genre: 'Modernismo' },
+        { id: 8, title: 'A Hora da Estrela', author: 'Clarice Lispector', cover: 'https://m.media-amazon.com/images/I/810Vj9zyi-L._UF1000,1000_QL80_.jpg', description: 'A história da datilógrafa alagoana Macabéa, que vive uma vida anônima e miserável no Rio de Janeiro.', genre: 'Modernismo' },
+        { id: 9, title: 'O Quinze', author: 'Rachel de Queiroz', cover: 'https://m.media-amazon.com/images/I/61g43KcOIzL._UF1000,1000_QL80_.jpg', description: 'Retrata a luta do povo nordestino contra a grande seca de 1915.', genre: 'Modernismo' },
+        { id: 10, title: 'Iracema', author: 'José de Alencar', cover: 'https://m.media-amazon.com/images/I/81dQ4061MaL.jpg', description: 'O romance entre a "virgem dos lábios de mel" e o colonizador português Martim.', genre: 'Romantismo' },
+        { id: 11, title: 'Triste Fim de Policarpo Quaresma', author: 'Lima Barreto', cover: 'https://m.media-amazon.com/images/I/91dS9YlzIWS.jpg', description: 'A história de um nacionalista fervoroso e suas frustrações com a pátria.', genre: 'Pré-Modernismo' },
+        { id: 12, title: 'O Auto da Compadecida', author: 'Ariano Suassuna', cover: 'https://images.dlivros.org/Ariano-Suassuna/auto-compadecida-ariano-suassuna_large.webp', description: 'As aventuras de João Grilo e Chicó no sertão nordestino, enfrentando o diabo e a morte.', genre: 'Teatro' },
+        { id: 13, title: 'São Bernardo', author: 'Graciliano Ramos', cover: 'https://m.media-amazon.com/images/I/81vFD4lJ6BL.jpg', description: 'A ascensão e queda de Paulo Honório, um homem rude que se torna um grande fazendeiro.', genre: 'Modernismo' },
+        { id: 14, title: 'O Guarani', author: 'José de Alencar', cover: 'https://m.media-amazon.com/images/I/7125-MeD+KL.jpg', description: 'O amor proibido entre a nobre Ceci e o índio Peri, que a protege de todos os perigos.', genre: 'Romantismo' },
+        { id: 15, title: 'Sagarana', author: 'João Guimarães Rosa', cover: 'https://m.media-amazon.com/images/I/81VvCG8xXWL._UF1000,1000_QL80_.jpg', description: 'Uma coletânea de contos que revelam o universo do sertão mineiro.', genre: 'Modernismo' },
+        { id: 16, title: 'O Ateneu', author: 'Raul Pompeia', cover: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGIn69nZ_UiFAD05FqJEmx42jRrXmDKXf3Hg&s', description: 'A vida de Sérgio, um menino que estuda em um colégio interno e enfrenta as pressões da sociedade.', genre: 'Realismo/Naturalismo' },
+        { id: 17, title: 'A Moreninha', author: 'Joaquim Manuel de Macedo', cover: 'https://m.media-amazon.com/images/I/61rqadtSs3S._UF1000,1000_QL80_.jpg', description: 'As peripécias de um grupo de jovens estudantes de medicina em uma ilha do Rio de Janeiro.', genre: 'Romantismo' },
+        { id: 18, title: 'Morte e Vida Severina', author: 'João Cabral de Melo Neto', cover: 'https://m.media-amazon.com/images/I/71AYPfbv2BL._UF1000,1000_QL80_.jpg', description: 'A trajetória de um retirante nordestino em busca de uma vida melhor na cidade grande.', genre: 'Poema Dramático' },
+        { id: 19, title: 'O Noviço', author: 'Martins Pena', cover: 'https://www.lpm.com.br/livros/imagens/novico__o_9788525406231_hd.jpg', description: 'Uma comédia de costumes que critica a hipocrisia e os interesses da sociedade da época.', genre: 'Teatro' }
     ];
-    
+
     // Carrega análises do localStorage ou inicializa um objeto vazio
     const allAnalyses = JSON.parse(localStorage.getItem('analyses')) || {};
 
@@ -46,17 +61,22 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </section>`;
 
+    // Função para gerar o template de um card de livro
+    function renderBookCard(book) {
+        return `
+            <div class="book-card" onclick="navigateTo('book-details', ${book.id})">
+                <img src="${book.cover}" alt="${book.title}">
+                <div><h3>${book.title}</h3><p>${book.author}</p></div>
+            </div>`;
+    }
+
     const obrasView = `
         ${header}
         <section>
             <h2>Catálogo de Obras</h2>
-            <div class="search-bar"><input type="text" placeholder="Pesquisar obras..."></div>
-            <div class="grid-container">
-                ${books.map(book => `
-                    <div class="book-card" onclick="navigateTo('book-details', ${book.id})">
-                        <img src="${book.cover}" alt="${book.title}">
-                        <div><h3>${book.title}</h3><p>${book.author}</p></div>
-                    </div>`).join('')}
+            <div class="search-bar"><input type="text" id="searchInput" placeholder="Pesquisar obras ou autores..."></div>
+            <div class="grid-container" id="booksContainer">
+                ${books.map(renderBookCard).join('')}
             </div>
         </section>`;
         
@@ -166,6 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewName === 'create-analise') {
             setupStarRating();
             setupAnalysisForm();
+        } else if (viewName === 'obras') {
+            setupObrasSearch();
         }
     };
 
@@ -224,6 +246,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    function setupObrasSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const booksContainer = document.getElementById('booksContainer');
+
+        if (searchInput) {
+            searchInput.addEventListener('keyup', () => {
+                const searchTerm = searchInput.value.toLowerCase();
+                const filteredBooks = books.filter(book =>
+                    book.title.toLowerCase().includes(searchTerm) ||
+                    book.author.toLowerCase().includes(searchTerm)
+                );
+
+                if (filteredBooks.length === 0) {
+                    booksContainer.innerHTML = '<p>Nenhuma obra encontrada.</p>';
+                } else {
+                    booksContainer.innerHTML = filteredBooks.map(renderBookCard).join('');
+                }
+            });
+        }
+    }
+
     // --- Inicialização ---
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
