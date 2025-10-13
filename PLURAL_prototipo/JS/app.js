@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <h2>Destaques</h2>
             <div class="grid-container">
                 ${books.slice(0, 3).map(book => `
-                    <div class="book-card" onclick="navigateTo('book-details', ${book.id})">
+                    <div class="book-card" onclick="navigateTo('detalhes-obra', ${book.id})">
                         <img src="${book.cover}" alt="${book.title}">
                         <div><h3>${book.title}</h3><p>${book.author}</p></div>
                     </div>`).join('')}
@@ -63,8 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função para gerar o template de um card de livro
     function renderBookCard(book) {
-        return `
-            <div class="book-card" onclick="navigateTo('book-details', ${book.id})">
+    return `
+        <div class="book-card" onclick="navigateTo('detalhes-obra', ${book.id})">
                 <img src="${book.cover}" alt="${book.title}">
                 <div><h3>${book.title}</h3><p>${book.author}</p></div>
             </div>`;
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </section>`;
     };
     
-    // **NOVO**: Tela "Minhas Análises"
+    // **NOVO**: Tela "Minhas Análises" - FELIPE
     const minhasAnalisesView = () => {
         const userAnalyses = allAnalyses[loggedInUser.email] || [];
         
@@ -167,22 +167,27 @@ document.addEventListener('DOMContentLoaded', () => {
         'perfil': defaultView,
     };
     
-    // --- Roteamento e Renderização ---
+  // --- Roteamento e Renderização ---
     const renderView = (viewName, params = null) => {
-        mainContent.innerHTML = ''; // Limpa o conteúdo
+        mainContent.innerHTML = ''; // Limpa o conteúdo antigo
         
+        // LÓGICA ESPECIAL PARA A NOSSA NOVA TELA
+        if (viewName === 'detalhes-obra') {
+            // 1. Busca o conteúdo do arquivo HTML da nova tela
+            openBookDetails(params, loggedInUser);
+  
+            return; // Para a execução aqui para não carregar outra tela por engano
+        }
+
+        // Esta é a lógica que você já tinha para as outras telas
         let viewContent;
-        if (viewName === 'book-details') {
-            viewContent = bookDetailsView(params);
-        } else if (viewName === 'create-analise') {
+        if (viewName === 'create-analise') {
             viewContent = createAnaliseView(params);
         } else {
-            // Se a view for uma função (como minhasAnalisesView), execute-a
             viewContent = typeof views[viewName] === 'function' ? views[viewName]() : views[viewName] || defaultView;
         }
         mainContent.innerHTML = viewContent;
-        
-        // Adiciona lógica interativa para a view renderizada
+
         if (viewName === 'create-analise') {
             setupStarRating();
             setupAnalysisForm();
@@ -190,7 +195,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setupObrasSearch();
         }
     };
-
     window.navigateTo = (viewName, params) => {
         window.location.hash = viewName + (params ? `/${params}` : '');
     };
@@ -266,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
-
+     
     // --- Inicialização ---
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
@@ -274,7 +278,41 @@ document.addEventListener('DOMContentLoaded', () => {
             navigateTo(link.dataset.view);
         });
     });
+    function openBookDetails(bookId, loggedInUser) {
+    const url = './detalhes-obra-view.html';
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('Erro ao carregar detalhes: ' + response.status + ' -> ' + url);
+            return response.text();
+        })
+        .then(html => {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = html;
 
+            // Se a função já estiver disponível (arquivo já carregado), chama direto
+            if (typeof setupBookDetailsPage === 'function') {
+                setupBookDetailsPage(bookId, loggedInUser);
+                return;
+            }
+
+            // Senão, carrega o script e chama após o load
+            const script = document.createElement('script');
+            script.src = './JS/detalhes-obra.js';
+            script.onload = () => {
+                if (typeof setupBookDetailsPage === 'function') {
+                    setupBookDetailsPage(bookId, loggedInUser);
+                } else {
+                    console.error('setupBookDetailsPage não definida após carregar detalhes-obra.js');
+                }
+            };
+            script.onerror = (e) => console.error('Erro ao carregar detalhes-obra.js', e);
+            document.body.appendChild(script);
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('mainContent').innerHTML = '<h2>Erro ao carregar detalhes da obra.</h2>';
+        });
+}
     document.getElementById('logoutButton').addEventListener('click', () => {
         localStorage.removeItem('loggedInUser');
         localStorage.removeItem('analyses'); // Opcional: limpar análises no logout
