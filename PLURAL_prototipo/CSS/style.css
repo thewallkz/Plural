@@ -373,3 +373,34 @@ section h2 { font-size: 1.8rem; margin-bottom: 1.5rem; font-weight: 600; }
         padding: 1.5rem;
     }
 }
+/* Torna a textarea pequena (placeholder) e o cursor indica que é clicável */
+.new-analysis-form .form-control {
+    height: 1.5em; /* Altura de uma linha */
+    transition: height 0.3s ease-in-out;
+    cursor: pointer;
+    resize: none; /* Impede o redimensionamento manual */
+}
+
+/* Quando expandida, a textarea ocupa mais espaço */
+.new-analysis-form .form-control.expanded {
+    height: 100px; /* Altura ideal para digitar a análise */
+    cursor: auto;
+    resize: vertical; /* Permite o redimensionamento vertical, se desejar */
+}
+
+/* Oculta os controles adicionais (checkbox e botão) por padrão */
+.analysis-controls.collapsed {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    padding-top: 0;
+}
+
+/* Revela os controles quando a classe 'expanded' é aplicada */
+.analysis-controls.expanded {
+    max-height: 200px; /* Suficiente para mostrar os elementos */
+    opacity: 1;
+    transition: max-height 0.3s ease-in, opacity 0.3s ease-in;
+    padding-top: 10px;
+}

@@ -1,7 +1,7 @@
 function setupBookDetailsPage(bookId, loggedInUser) {
-    // Simula a busca de dados de livros (no seu projeto, viria do array 'books' em app.js)
+    // Simula a busca de dados de livros (os dados são os mesmos que você forneceu)
     const books = [
-      { id: 1, title: 'Dom Casmurro', author: 'Machado de Assis', cover: 'https://m.media-amazon.com/images/I/61x1ZHomWUL.jpg', description: 'Dom Casmurro é um romance escrito por Machado de Assis...', genre: 'Romance' },
+        { id: 1, title: 'Dom Casmurro', author: 'Machado de Assis', cover: 'https://m.media-amazon.com/images/I/61x1ZHomWUL.jpg', description: 'Dom Casmurro é um romance escrito por Machado de Assis...', genre: 'Romance' },
         { id: 2, title: 'O Cortiço', author: 'Aluísio Azevedo', cover: 'https://m.media-amazon.com/images/I/61hI7QLrTkL._UF1000,1000_QL80_.jpg', description: 'Obra de Aluísio Azevedo que denuncia a exploração social...', genre: 'Naturalismo' },
         { id: 3, title: 'Grande Sertão: Veredas', author: 'João Guimarães Rosa', cover: 'https://m.media-amazon.com/images/I/81NtboFZziL.jpg', description: 'Narra a história do jagunço Riobaldo...', genre: 'Modernismo' },
         { id: 4, title: 'Vidas Secas', author: 'Graciliano Ramos', cover: 'https://m.media-amazon.com/images/I/618-b9Im6dL._UF1000,1000_QL80_.jpg', description: 'Retrata a vida de uma família de retirantes nordestinos...', genre: 'Modernismo' },
@@ -24,7 +24,8 @@ function setupBookDetailsPage(bookId, loggedInUser) {
 
     const currentBook = books.find(b => b.id === bookId);
     if (!currentBook) {
-        document.getElementById('mainContent').innerHTML = '<h2>Obra não encontrada</h2>';
+        // Presumindo que o mainContent está na dashboard.html
+        document.getElementById('mainContent').innerHTML = '<h2>Obra não encontrada</h2>'; 
         return;
     }
 
@@ -42,6 +43,9 @@ function setupBookDetailsPage(bookId, loggedInUser) {
     const newAnalysisForm = document.getElementById('newAnalysisForm');
     const newAnalysisText = document.getElementById('newAnalysisText');
     const analysesList = document.getElementById('analysesList');
+    // NOVO: Referência ao container dos controles
+    const analysisControls = document.getElementById('analysisControls'); 
+    
     document.getElementById('userName').textContent = loggedInUser.name;
     document.getElementById('userAvatar').textContent = loggedInUser.name.charAt(0).toUpperCase();
     
@@ -66,16 +70,39 @@ function setupBookDetailsPage(bookId, loggedInUser) {
     }
 
     function renderAnalyses() {
-        analysesList.innerHTML = ''; // Limpa a lista antes de renderizar
-        if (bookData.analyses.length === 0) {
-            analysesList.innerHTML = '<p>Nenhuma análise ainda. Seja o primeiro a comentar!</p>';
+        analysesList.innerHTML = ''; 
+
+        // 1. FILTRA AS ANÁLISES: A CORREÇÃO DE PRIVACIDADE ESTÁ AQUI
+        const analysesToDisplay = bookData.analyses.filter(analysis => {
+            // Regra 1: O usuário logado (dono) sempre vê suas próprias análises
+            if (analysis.userEmail === loggedInUser.email) {
+                return true;
+            }
+            // Regra 2: Para análises de terceiros, só mostra se isPublic for explicitamente true.
+            // Análises antigas ou não marcadas (undefined/false) serão ocultadas.
+            return analysis.isPublic === true;
+        });
+
+
+        if (analysesToDisplay.length === 0) {
+            analysesList.innerHTML = '<p>Nenhuma análise pública ainda. Seja o primeiro a comentar!</p>';
             return;
         }
 
-        bookData.analyses.forEach(analysis => {
+        // 2. RENDERIZA APENAS AS ANÁLISES FILTRADAS
+        analysesToDisplay.forEach(analysis => {
             const isLikedByCurrentUser = analysis.likes.includes(loggedInUser.email);
+            
+            // Verifica se é uma análise privada do usuário logado (para mostrar o cadeado)
+            const isPrivateComment = analysis.userEmail === loggedInUser.email && analysis.isPublic !== true;
+            
             const analysisElement = document.createElement('div');
             analysisElement.className = 'analysis-item card';
+            
+            const privacyIndicator = isPrivateComment 
+                ? '<span class="privacy-tag">🔒 Análise Privada</span>' 
+                : '';
+                
             analysisElement.innerHTML = `
                 <div class="analysis-header">
                     <div class="analysis-author">
@@ -84,6 +111,7 @@ function setupBookDetailsPage(bookId, loggedInUser) {
                     </div>
                     <span class="analysis-date">${new Date(analysis.date).toLocaleDateString('pt-BR')}</span>
                 </div>
+                ${privacyIndicator} 
                 <div class="analysis-body"><p>${analysis.text}</p></div>
                 <div class="analysis-actions">
                     <button class="btn-like-analysis ${isLikedByCurrentUser ? 'liked' : ''}" data-analysis-id="${analysis.id}">
@@ -96,7 +124,7 @@ function setupBookDetailsPage(bookId, loggedInUser) {
     }
     
     function renderRatingsAndLikes() {
-        // Média de avaliações
+        // Lógica mantida
         const totalRatings = bookData.ratings.length;
         const sumOfRatings = bookData.ratings.reduce((sum, r) => sum + r.rating, 0);
         const average = totalRatings > 0 ? (sumOfRatings / totalRatings) : 0;
@@ -104,21 +132,44 @@ function setupBookDetailsPage(bookId, loggedInUser) {
         averageStars.innerHTML = '★'.repeat(Math.round(average)) + '☆'.repeat(5 - Math.round(average));
         ratingsCount.textContent = `(${totalRatings} ${totalRatings === 1 ? 'avaliação' : 'avaliações'})`;
 
-        // Avaliação do usuário atual
         const currentUserRating = bookData.ratings.find(r => r.user === loggedInUser.email);
         userRatingStars.forEach(star => {
             star.classList.toggle('selected', currentUserRating && star.dataset.value <= currentUserRating.rating);
         });
         
-        // Curtida da obra
         const isBookLiked = bookData.likes.includes(loggedInUser.email);
         likeBookButton.querySelector('.fa-heart').classList.toggle('liked', isBookLiked);
         bookLikesCount.textContent = bookData.likes.length;
     }
 
+    // --- Lógica de Interação da Text Box (Foco/Blur) ---
+    
+    // Expande o campo e controles ao ganhar foco
+    if (newAnalysisText && analysisControls) {
+        newAnalysisText.addEventListener('focus', () => {
+            newAnalysisText.classList.add('expanded');
+            analysisControls.classList.remove('collapsed');
+            analysisControls.classList.add('expanded');
+        });
+    }
+
+    // Colapsa o campo e controles ao perder foco, SE estiver vazio
+    if (newAnalysisText && analysisControls) {
+        newAnalysisText.addEventListener('blur', () => {
+            // Usa um pequeno timeout para permitir o clique no botão de envio
+            setTimeout(() => {
+                 if (newAnalysisText.value.trim() === '') {
+                    newAnalysisText.classList.remove('expanded');
+                    analysisControls.classList.remove('expanded');
+                    analysisControls.classList.add('collapsed');
+                }
+            }, 100);
+        });
+    }
+
     // --- Lógica de Eventos ---
     
-    // Avaliar com estrelas
+    // Avaliar com estrelas (Mantida)
     userRatingStars.forEach(star => {
         star.addEventListener('click', () => {
             const ratingValue = parseInt(star.dataset.value, 10);
@@ -134,41 +185,53 @@ function setupBookDetailsPage(bookId, loggedInUser) {
         });
     });
     
-    // Curtir a obra
+    // Curtir a obra (Mantida)
     likeBookButton.addEventListener('click', () => {
         const userEmail = loggedInUser.email;
         const likeIndex = bookData.likes.indexOf(userEmail);
 
         if (likeIndex > -1) {
-            bookData.likes.splice(likeIndex, 1); // Descurtir
+            bookData.likes.splice(likeIndex, 1);
         } else {
-            bookData.likes.push(userEmail); // Curtir
+            bookData.likes.push(userEmail);
         }
         saveDb(db);
         renderRatingsAndLikes();
     });
 
-    // Enviar nova análise
+    // Enviar nova análise (Lógica de submissão com checkbox)
     newAnalysisForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const text = newAnalysisText.value.trim();
         if (!text) return;
+        
+        // CAPTURA O VALOR FUNCIONAL DO CHECKBOX
+        const isPublic = document.getElementById('isPublic').checked; 
 
         const newAnalysis = {
-            id: Date.now(), // ID único simples
+            id: Date.now(),
             userName: loggedInUser.name,
             userEmail: loggedInUser.email,
             text: text,
             date: new Date().toISOString(),
-            likes: []
+            likes: [],
+            isPublic: isPublic // Valor salvo: true ou false
         };
-        bookData.analyses.unshift(newAnalysis); // Adiciona no início da lista
+        bookData.analyses.unshift(newAnalysis); 
         saveDb(db);
         renderAnalyses();
         newAnalysisText.value = '';
+        
+        // Colapsa a caixa de volta após o envio
+        if (newAnalysisText && analysisControls) {
+            newAnalysisText.classList.remove('expanded');
+            analysisControls.classList.remove('expanded');
+            analysisControls.classList.add('collapsed');
+            document.getElementById('isPublic').checked = false; 
+        }
     });
     
-    // Curtir uma análise específica (usando delegação de eventos)
+    // Curtir uma análise específica (Mantida)
     analysesList.addEventListener('click', (e) => {
         const likeButton = e.target.closest('.btn-like-analysis');
         if (!likeButton) return;
@@ -181,12 +244,12 @@ function setupBookDetailsPage(bookId, loggedInUser) {
             const likeIndex = analysis.likes.indexOf(userEmail);
 
             if (likeIndex > -1) {
-                analysis.likes.splice(likeIndex, 1); // Descurtir
+                analysis.likes.splice(likeIndex, 1); 
             } else {
-                analysis.likes.push(userEmail); // Curtir
+                analysis.likes.push(userEmail); 
             }
             saveDb(db);
-            renderAnalyses(); // Re-renderiza para atualizar contagem e estilo
+            renderAnalyses();
         }
     });
 
