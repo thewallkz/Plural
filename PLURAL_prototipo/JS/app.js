@@ -26,8 +26,15 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 19, title: 'O Noviço', author: 'Martins Pena', cover: 'https://www.lpm.com.br/livros/imagens/novico__o_9788525406231_hd.jpg', description: 'Uma comédia de costumes que critica a hipocrisia e os interesses da sociedade da época.', genre: 'Teatro' }
     ];
 
-    // Carrega análises do localStorage ou inicializa um objeto vazio
-    const allAnalyses = JSON.parse(localStorage.getItem('analyses')) || {};
+    const allInteractions = JSON.parse(localStorage.getItem('pluralBookInteractions')) || {};
+    let userAnalysesCount = 0;
+    for (const bookId in allInteractions) {
+        if (allInteractions[bookId].analyses) {
+            userAnalysesCount += allInteractions[bookId].analyses.filter(
+                analysis => analysis.userEmail === loggedInUser.email
+            ).length;
+        }
+    }
 
     // --- Templates das Telas (Views) ---
 
@@ -45,8 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <section>
             <h2>Resumo</h2>
             <div class="grid-container">
-                <div class="card"><span class="card-number">${allAnalyses[loggedInUser.email]?.length || 0}</span><span class="card-label">Análises</span></div>
-                <div class="card"><span class="card-number">04</span><span class="card-label">Obras</span></div>
+                <div class="card"><span class="card-number">${userAnalysesCount}</span><span class="card-label">Análises</span></div>
+                <div class="card"><span class="card-number">${books.length}</span><span class="card-label">Obras</span></div>
                 <div class="card"><span class="card-number">01</span><span class="card-label">Notificações</span></div>
             </div>
         </section>
@@ -80,28 +87,23 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </section>`;
         
-    const bookDetailsView = (bookId) => {
-        const book = books.find(b => b.id === bookId);
-        return `
-            ${header}
-            <section>
-                <div class="book-details-container">
-                    <div class="book-cover">
-                        <img src="${book.cover}" alt="${book.title}">
-                        <button class="btn btn-primary btn-full" onclick="navigateTo('create-analise', ${book.id})">Escrever Análise</button>
-                    </div>
-                    <div class="book-info">
-                        <h2>${book.title}</h2><h3>${book.author}</h3>
-                        <h4>Descrição</h4><p>${book.description}</p>
-                        <h4>Gênero</h4><p>${book.genre}</p>
-                    </div>
-                </div>
-            </section>`;
-    };
-    
-    // **NOVO**: Tela "Minhas Análises" - FELIPE
     const minhasAnalisesView = () => {
-        const userAnalyses = allAnalyses[loggedInUser.email] || [];
+        const allInteractions = JSON.parse(localStorage.getItem('pluralBookInteractions')) || {};
+        const userAnalyses = [];
+
+        for (const bookId in allInteractions) {
+            const bookInteraction = allInteractions[bookId];
+            const bookInfo = books.find(b => b.id == bookId);
+
+            if (bookInteraction.analyses && bookInfo) {
+                const analysesForThisBook = bookInteraction.analyses.filter(
+                    analysis => analysis.userEmail === loggedInUser.email
+                );
+                analysesForThisBook.forEach(analysis => {
+                    userAnalyses.push({ ...analysis, bookTitle: bookInfo.title });
+                });
+            }
+        }
         
         let content;
         if (userAnalyses.length === 0) {
@@ -114,14 +116,18 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             content = `
                 <div class="analyses-grid">
-                    ${userAnalyses.map(analysis => `
+                    ${userAnalyses.map(analysis => {
+                        const interactions = allInteractions[books.find(b => b.title === analysis.bookTitle)?.id] || {};
+                        const userRating = interactions.ratings?.find(r => r.user === loggedInUser.email);
+                        const rating = userRating ? userRating.rating : 0;
+
+                        return `
                         <div class="analysis-card">
                             <h4>${analysis.bookTitle}</h4>
-                            <h3>${analysis.title}</h3>
-                            <div class="star-rating-display">${'★'.repeat(analysis.rating)}${'☆'.repeat(5 - analysis.rating)}</div>
+                            <div class="star-rating-display">${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}</div>
                             <p>${analysis.text.substring(0, 150)}...</p>
-                        </div>
-                    `).join('')}
+                        </div>`
+                    }).join('')}
                 </div>`;
         }
 
@@ -135,47 +141,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${content}
             </section>`;
     };
-
- 
         
     const defaultView = `${header}<section><h2>Página em Construção</h2></section>`;
 
     const views = {
         'home': homeView,
         'obras': obrasView,
-        'analises': minhasAnalisesView, // Alterado para a nova view
+        'analises': minhasAnalisesView,
         'notificacoes': defaultView,
         'perfil': defaultView,
     };
     
-  // --- Roteamento e Renderização ---
     const renderView = (viewName, params = null) => {
-        mainContent.innerHTML = ''; // Limpa o conteúdo antigo
+        mainContent.innerHTML = ''; 
         
-        // LÓGICA ESPECIAL PARA A NOSSA NOVA TELA
         if (viewName === 'detalhes-obra') {
-            // 1. Busca o conteúdo do arquivo HTML da nova tela
             openBookDetails(params, loggedInUser);
-  
-            return; // Para a execução aqui para não carregar outra tela por engano
+            return;
         }
 
-        // Esta é a lógica que você já tinha para as outras telas
-        let viewContent;
-        if (viewName === 'create-analise') {
-            viewContent = createAnaliseView(params);
-        } else {
-            viewContent = typeof views[viewName] === 'function' ? views[viewName]() : views[viewName] || defaultView;
-        }
+        let viewContent = typeof views[viewName] === 'function' ? views[viewName]() : views[viewName] || defaultView;
         mainContent.innerHTML = viewContent;
 
-        if (viewName === 'create-analise') {
-            setupStarRating();
-            setupAnalysisForm();
-        } else if (viewName === 'obras') {
+        if (viewName === 'obras') {
             setupObrasSearch();
         }
     };
+
     window.navigateTo = (viewName, params) => {
         window.location.hash = viewName + (params ? `/${params}` : '');
     };
@@ -190,46 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         renderView(viewName, param ? Number(param) : null);
     };
-
-    // --- Lógica Interativa Específica ---
-    function setupStarRating() {
-        const stars = document.querySelectorAll('.star-rating .fa-star');
-        const ratingInput = document.getElementById('ratingValue');
-        stars.forEach(star => {
-            star.addEventListener('click', () => {
-                const rating = star.dataset.value;
-                ratingInput.value = rating;
-                stars.forEach(s => {
-                    s.classList.toggle('selected', s.dataset.value <= rating);
-                });
-            });
-        });
-    }
-
-    function setupAnalysisForm() {
-        const form = document.getElementById('analysisForm');
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const newAnalysis = {
-                bookId: form.dataset.bookId,
-                bookTitle: form.dataset.bookTitle,
-                title: document.getElementById('title').value,
-                text: document.getElementById('analysis').value,
-                rating: document.getElementById('ratingValue').value
-            };
-            
-            // Salva a análise no localStorage
-            const userEmail = loggedInUser.email;
-            if (!allAnalyses[userEmail]) {
-                allAnalyses[userEmail] = [];
-            }
-            allAnalyses[userEmail].unshift(newAnalysis); // Adiciona no início
-            localStorage.setItem('analyses', JSON.stringify(allAnalyses));
-
-            // Navega para a lista de análises
-            navigateTo('analises');
-        });
-    }
     
     function setupObrasSearch() {
         const searchInput = document.getElementById('searchInput');
@@ -252,54 +204,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
      
-    // --- Inicialização ---
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             navigateTo(link.dataset.view);
         });
     });
+
     function openBookDetails(bookId, loggedInUser) {
-    const url = './detalhes-obra-view.html';
-    fetch(url)
-        .then(response => {
-            if (!response.ok) throw new Error('Erro ao carregar detalhes: ' + response.status + ' -> ' + url);
-            return response.text();
-        })
-        .then(html => {
-            const mainContent = document.getElementById('mainContent');
-            mainContent.innerHTML = html;
+        const url = './detalhes-obra-view.html';
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error('Erro ao carregar detalhes: ' + response.status + ' -> ' + url);
+                return response.text();
+            })
+            .then(html => {
+                const mainContent = document.getElementById('mainContent');
+                mainContent.innerHTML = html;
 
-            // Se a função já estiver disponível (arquivo já carregado), chama direto
-            if (typeof setupBookDetailsPage === 'function') {
-                setupBookDetailsPage(bookId, loggedInUser);
-                return;
-            }
-
-            // Senão, carrega o script e chama após o load
-            const script = document.createElement('script');
-            script.src = './JS/detalhes-obra.js';
-            script.onload = () => {
                 if (typeof setupBookDetailsPage === 'function') {
                     setupBookDetailsPage(bookId, loggedInUser);
-                } else {
-                    console.error('setupBookDetailsPage não definida após carregar detalhes-obra.js');
+                    return;
                 }
-            };
-            script.onerror = (e) => console.error('Erro ao carregar detalhes-obra.js', e);
-            document.body.appendChild(script);
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById('mainContent').innerHTML = '<h2>Erro ao carregar detalhes da obra.</h2>';
-        });
-}
+
+                const script = document.createElement('script');
+                script.src = './JS/detalhes-obra.js';
+                script.onload = () => {
+                    if (typeof setupBookDetailsPage === 'function') {
+                        setupBookDetailsPage(bookId, loggedInUser);
+                    } else {
+                        console.error('setupBookDetailsPage não definida após carregar detalhes-obra.js');
+                    }
+                };
+                script.onerror = (e) => console.error('Erro ao carregar detalhes-obra.js', e);
+                document.body.appendChild(script);
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('mainContent').innerHTML = '<h2>Erro ao carregar detalhes da obra.</h2>';
+            });
+    }
+
     document.getElementById('logoutButton').addEventListener('click', () => {
         localStorage.removeItem('loggedInUser');
-        localStorage.removeItem('analyses'); // Opcional: limpar análises no logout
+        // A linha que removia 'pluralBookInteractions' foi retirada daqui
         window.location.href = 'index.html';
     });
 
     window.addEventListener('hashchange', handleRouteChange);
-    handleRouteChange(); // Renderiza a view inicial
+    handleRouteChange();
 });
