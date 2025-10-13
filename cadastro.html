@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crie sua conta | Plural</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-box">
+            <h1 class="auth-logo">Plural</h1>
+            <h2>Crie sua conta</h2>
+            <p class="auth-switch">Já tem uma conta? <a href="index.html">Faça login</a></p>
+            <form id="registerForm">
+                <div class="input-group">
+                    <input type="text" id="name" placeholder="Nome completo" required>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="email" placeholder="Endereço de e-mail" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Senha" minlength="6" required>
+                </div>
+                <p id="error-message" class="error-message"></p>
+                <button type="submit" class="auth-button">Cadastrar</button>
+            </form>
+        </div>
+    </div>
+    <script src="js/auth.js"></script>
+</body>
+</html>
