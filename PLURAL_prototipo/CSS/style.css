@@ -143,4 +143,89 @@ section h2 { font-size: 1.8rem; margin-bottom: 1.5rem; font-weight: 600; }
 .star-rating .fa-star { font-size: 1.5rem; color: #e9ecef; cursor: pointer; }
 .star-rating .fa-star.selected { color: #ffc107; }
 .btn-primary { background: var(--primary-blue); color: var(--white); border: none; }
+
 .btn-primary:hover { background: var(--dark-blue); }
+
+/* --- Estilos da Seção "Minhas Análises" --- */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: var(--white);
+    border-radius: 12px;
+    box-shadow: var(--box-shadow);
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+}
+
+.analyses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.analysis-card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--box-shadow);
+    border-left: 4px solid var(--primary-blue);
+}
+
+.analysis-card h4 {
+    font-weight: 500;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.analysis-card h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.analysis-card p {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-top: 1rem;
+}
+
+.star-rating-display {
+    color: #ffc107;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* --- Melhorias em Componentes Existentes --- */
+.btn.btn-full {
+    width: 100%;
+    margin-top: 1.5rem;
+}
+
+.btn-primary {
+    background: var(--primary-blue);
+    color: var(--white);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: var(--dark-blue);
+}
+
+.book-details-container .book-cover {
+    display: flex;
+    flex-direction: column;
+}
