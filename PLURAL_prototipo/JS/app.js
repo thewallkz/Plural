@@ -136,26 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </section>`;
     };
 
-    const createAnaliseView = (bookId) => {
-        const book = books.find(b => b.id === bookId);
-        return `
-            ${header}
-            <section>
-                <h2>Criação de Análise para: ${book.title}</h2>
-                <form id="analysisForm" data-book-id="${book.id}" data-book-title="${book.title}">
-                    <div class="form-group"><label for="title">Título da sua análise</label><input type="text" id="title" class="form-control" required></div>
-                    <div class="form-group"><label for="analysis">Escreva sua análise aqui</label><textarea id="analysis" class="form-control" required></textarea></div>
-                    <div class="form-group">
-                        <label>Sua avaliação</label>
-                        <div class="star-rating">
-                            <i class="fa-solid fa-star" data-value="1"></i><i class="fa-solid fa-star" data-value="2"></i><i class="fa-solid fa-star" data-value="3"></i><i class="fa-solid fa-star" data-value="4"></i><i class="fa-solid fa-star" data-value="5"></i>
-                        </div>
-                        <input type="hidden" id="ratingValue" name="rating" value="0">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Enviar Análise</button>
-                </form>
-            </section>`;
-    };
+ 
         
     const defaultView = `${header}<section><h2>Página em Construção</h2></section>`;
 
