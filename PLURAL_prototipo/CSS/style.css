@@ -101,6 +101,17 @@ body {
     font-weight: 500;
     transition: background 0.3s, color 0.3s;
 }
+
+/* botão publico */ 
+.center-wrapper {
+  display: flex;
+  flex-direction: row;        /* define que os itens ficam lado a lado */
+  align-items: center;        /* alinha verticalmente os itens */
+  gap: 20px;                   /* espaço entre os itens */
+  margin-top: 10px;
+  font-size: 0.8rem;
+}
+
 .logout-button:hover { background: #dc3545; color: var(--white); border-color: #dc3545; }
 
 .main-content { flex-grow: 1; padding: 2rem 3rem; }

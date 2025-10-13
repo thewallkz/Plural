@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${books.map(renderBookCard).join('')}
             </div>
         </section>`;
-        
+
     const bookDetailsView = (bookId) => {
         const book = books.find(b => b.id === bookId);
         return `
@@ -98,11 +98,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </section>`;
     };
-    
+
     // **NOVO**: Tela "Minhas Análises"
     const minhasAnalisesView = () => {
         const userAnalyses = allAnalyses[loggedInUser.email] || [];
-        
+
         let content;
         if (userAnalyses.length === 0) {
             content = `
@@ -152,11 +152,23 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <input type="hidden" id="ratingValue" name="rating" value="0">
                     </div>
+                    <div class="form-group center-wrapper">
+                    <label for="publico">Deixar análise pública?</label>
+
+
+
+                    <input type="checkbox" id="publico" name="publico" value="sim" checked> 
+
+
                     <button type="submit" class="btn btn-primary">Enviar Análise</button>
+                  
+                    </div>
+
+
                 </form>
             </section>`;
     };
-        
+
     const defaultView = `${header}<section><h2>Página em Construção</h2></section>`;
 
     const views = {
@@ -166,11 +178,11 @@ document.addEventListener('DOMContentLoaded', () => {
         'notificacoes': defaultView,
         'perfil': defaultView,
     };
-    
+
     // --- Roteamento e Renderização ---
     const renderView = (viewName, params = null) => {
         mainContent.innerHTML = ''; // Limpa o conteúdo
-        
+
         let viewContent;
         if (viewName === 'book-details') {
             viewContent = bookDetailsView(params);
@@ -181,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
             viewContent = typeof views[viewName] === 'function' ? views[viewName]() : views[viewName] || defaultView;
         }
         mainContent.innerHTML = viewContent;
-        
+
         // Adiciona lógica interativa para a view renderizada
         if (viewName === 'create-analise') {
             setupStarRating();
@@ -198,11 +210,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleRouteChange = () => {
         const hash = window.location.hash.substring(1) || 'home';
         const [viewName, param] = hash.split('/');
-        
+
         navLinks.forEach(link => {
             link.classList.toggle('active', link.dataset.view === viewName);
         });
-        
+
         renderView(viewName, param ? Number(param) : null);
     };
 
@@ -232,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 text: document.getElementById('analysis').value,
                 rating: document.getElementById('ratingValue').value
             };
-            
+
             // Salva a análise no localStorage
             const userEmail = loggedInUser.email;
             if (!allAnalyses[userEmail]) {
@@ -245,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
             navigateTo('analises');
         });
     }
-    
+
     function setupObrasSearch() {
         const searchInput = document.getElementById('searchInput');
         const booksContainer = document.getElementById('booksContainer');
