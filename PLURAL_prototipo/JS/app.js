@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const userNameEl = document.getElementById('userName');
         const userAvatarEl = document.getElementById('userAvatar');
         if (userNameEl && userAvatarEl) {
-            // Recarrega o usuário do localStorage para garantir que o nome esteja atualizado
             const freshLoggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
             userNameEl.textContent = freshLoggedInUser.name;
             userAvatarEl.textContent = freshLoggedInUser.name.charAt(0).toUpperCase();
@@ -44,8 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Cria um elemento de card de livro a partir do template HTML.
-     * @param {object} book - O objeto do livro.
-     * @returns {HTMLElement} O elemento do card pronto.
      */
     function createBookCard(book) {
         const template = document.getElementById('book-card-template');
@@ -62,23 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     /**
      * Carrega o HTML de uma view (página) e insere no mainContent.
-     * @param {string} viewName - O nome da view (ex: 'home', 'obras').
      */
     async function loadView(viewName) {
-        // Define um mapa para as views padrão que não carregam de arquivos
+        // 'notificacoes' foi removido desta lista para carregar o arquivo HTML
         const defaultViews = {
-            'notificacoes': `<header class="main-header">
-                                <a href="#perfil" class="user-profile">
-                                    <span id="userName"></span>
-                                    <div class="user-avatar" id="userAvatar"></div>
-                                </a>
-                             </header>
-                             <section><h2>Página em Construção</h2></section>`
+            // Nenhuma view padrão aqui por enquanto
         };
 
         if (defaultViews[viewName]) {
              mainContent.innerHTML = defaultViews[viewName];
-             populateHeader(); // Garante que o cabeçalho seja preenchido
+             populateHeader(); 
              return;
         }
 
@@ -98,8 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Renderiza a view principal, carregando o HTML e executando a lógica JS específica.
-     * @param {string} viewName - O nome da view.
-     * @param {number|null} params - Parâmetros (ex: ID do livro).
      */
     async function renderView(viewName, params = null) {
         if (viewName === 'detalhes-obra') {
@@ -137,8 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
             renderMinhasAnalises();
         
         } else if (viewName === 'perfil') {
-            // *** LÓGICA PARA A PÁGINA DE PERFIL ***
             setupProfilePage();
+        
+        } else if (viewName === 'notificacoes') {
+            // *** NOVA LÓGICA PARA A PÁGINA DE NOTIFICAÇÕES ***
+            renderNotifications();
         }
     }
     
@@ -204,14 +195,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const profilePassword = document.getElementById('profilePassword');
         const profileMessage = document.getElementById('profileMessage');
 
-        if (!profileForm) return; // Sai se o formulário não existir
+        if (!profileForm) return; 
 
-        // 1. Preenche os dados atuais do usuário
         const currentUser = JSON.parse(localStorage.getItem('loggedInUser'));
         profileName.value = currentUser.name;
         profileEmail.value = currentUser.email;
 
-        // 2. Adiciona o listener para salvar
         profileForm.addEventListener('submit', (e) => {
             e.preventDefault();
             
@@ -225,7 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                // Atualiza a lista geral de usuários
                 let users = JSON.parse(localStorage.getItem('users')) || [];
                 const userIndex = users.findIndex(u => u.email === currentUser.email);
                 
@@ -237,19 +225,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('users', JSON.stringify(users));
                 }
 
-                // Atualiza o usuário logado na sessão
                 currentUser.name = newName;
                 if (newPassword) {
-                    currentUser.password = newPassword; // O auth.js usa senha em texto plano
+                    currentUser.password = newPassword;
                 }
                 localStorage.setItem('loggedInUser', JSON.stringify(currentUser));
 
-                // Feedback de sucesso
                 profileMessage.textContent = 'Perfil atualizado com sucesso!';
                 profileMessage.className = 'success';
-                profilePassword.value = ''; // Limpa o campo de senha
+                profilePassword.value = ''; 
 
-                // Atualiza o nome no cabeçalho
                 populateHeader();
 
             } catch (error) {
@@ -260,12 +245,70 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // *** NOVA FUNÇÃO PARA RENDERIZAR NOTIFICAÇÕES (SIMULADAS) ***
+    /**
+     * Renderiza notificações simuladas na página de notificações.
+     */
+    function renderNotifications() {
+        const container = document.getElementById('notificationListContainer');
+        if (!container) return;
+
+        // Dados simulados de notificações
+        const notifications = [
+            { 
+                id: 1, 
+                icon: 'fa-comment', 
+                text: '<strong>João Silva</strong> comentou na sua análise de "Dom Casmurro".', 
+                date: 'Há 5 minutos', 
+                read: false,
+                link: '#detalhes-obra/1' 
+            },
+            { 
+                id: 2, 
+                icon: 'fa-thumbs-up', 
+                text: '<strong>Maria Oliveira</strong> curtiu sua análise de "Vidas Secas".', 
+                date: 'Há 2 horas', 
+                read: false,
+                link: '#detalhes-obra/4'
+            },
+            { 
+                id: 3, 
+                icon: 'fa-bell', 
+                text: 'Bem-vindo ao <strong>Plural</strong>! Explore as obras e compartilhe suas ideias.', 
+                date: 'Ontem', 
+                read: true,
+                link: '#obras'
+            }
+        ];
+
+        if (notifications.length === 0) {
+            container.innerHTML = '<p>Você não tem nenhuma notificação.</p>';
+            return;
+        }
+
+        container.innerHTML = ''; // Limpa o container
+        notifications.forEach(notif => {
+            const notifElement = document.createElement('a');
+            notifElement.href = notif.link;
+            notifElement.className = `notification-item ${notif.read ? 'read' : 'unread'}`;
+            
+            notifElement.innerHTML = `
+                <div class="icon">
+                    <i class="fa-solid ${notif.icon}"></i>
+                </div>
+                <div class="content">
+                    <p>${notif.text}</p>
+                    <span class="date">${notif.date}</span>
+                </div>
+            `;
+            container.appendChild(notifElement);
+        });
+    }
+
     // --- Navegação e Roteamento ---
 
     /**
      * Altera a hash da URL para disparar a mudança de rota.
-     * @param {string} viewName - A view de destino.
-     * @param {any} params - Parâmetros para a rota.
      */
     window.navigateTo = (viewName, params) => {
         window.location.hash = viewName + (params ? `/${params}` : '');
@@ -311,8 +354,6 @@ document.addEventListener('DOMContentLoaded', () => {
      
     /**
      * Carrega o HTML de 'detalhes-obra-view.html' e inicializa seu script.
-     * @param {number} bookId - O ID do livro.
-     * @param {object} loggedInUser - O objeto do usuário logado.
      */
     function openBookDetails(bookId, loggedInUser) {
         fetch('./detalhes-obra-view.html')
