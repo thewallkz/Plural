@@ -41,9 +41,8 @@ PLURAL\_prototipo/
 
 ## Como Executar
 
-1.  Clone ou baixe este repositório.
-2.  Abra o arquivo `PLURAL_prototipo/index.html` em seu navegador.
-3.  Crie uma conta ou faça login para acessar o dashboard.
+1.  Acesse `https://pluralproto.netlify.app/` em seu navegador.
+2.  Crie uma conta ou faça login para acessar o dashboard.
 
 ## Tecnologias
 
