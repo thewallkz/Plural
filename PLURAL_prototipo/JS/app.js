@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
 
     // --- Dados Simulados ---
-    // (A descrição e o gênero foram removidos pois não são usados na listagem)
     const books = [
         { id: 1, title: 'Dom Casmurro', author: 'Machado de Assis', cover: 'https://m.media-amazon.com/images/I/61x1ZHomWUL.jpg' },
         { id: 2, title: 'O Cortiço', author: 'Aluísio Azevedo', cover: 'https://m.media-amazon.com/images/I/61hI7QLrTkL._UF1000,1000_QL80_.jpg' },
@@ -36,8 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const userNameEl = document.getElementById('userName');
         const userAvatarEl = document.getElementById('userAvatar');
         if (userNameEl && userAvatarEl) {
-            userNameEl.textContent = loggedInUser.name;
-            userAvatarEl.textContent = loggedInUser.name.charAt(0).toUpperCase();
+            // Recarrega o usuário do localStorage para garantir que o nome esteja atualizado
+            const freshLoggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+            userNameEl.textContent = freshLoggedInUser.name;
+            userAvatarEl.textContent = freshLoggedInUser.name.charAt(0).toUpperCase();
         }
     }
 
@@ -48,16 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function createBookCard(book) {
         const template = document.getElementById('book-card-template');
-        // Clona o conteúdo do template
         const card = template.content.cloneNode(true).firstElementChild;
         
-        // Preenche os dados
         card.querySelector('img').src = book.cover;
         card.querySelector('img').alt = book.title;
         card.querySelector('h3').textContent = book.title;
         card.querySelector('p').textContent = book.author;
         
-        // Adiciona o evento de clique
         card.addEventListener('click', () => navigateTo('detalhes-obra', book.id));
         return card;
     }
@@ -69,8 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadView(viewName) {
         // Define um mapa para as views padrão que não carregam de arquivos
         const defaultViews = {
-            'notificacoes': `${populateHeader()} <section><h2>Página em Construção</h2></section>`,
-            'perfil': `${populateHeader()} <section><h2>Página em Construção</h2></section>`
+            'notificacoes': `<header class="main-header">
+                                <a href="#perfil" class="user-profile">
+                                    <span id="userName"></span>
+                                    <div class="user-avatar" id="userAvatar"></div>
+                                </a>
+                             </header>
+                             <section><h2>Página em Construção</h2></section>`
         };
 
         if (defaultViews[viewName]) {
@@ -99,17 +102,14 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {number|null} params - Parâmetros (ex: ID do livro).
      */
     async function renderView(viewName, params = null) {
-        // Caso especial: 'detalhes-obra' carrega um arquivo HTML raiz
         if (viewName === 'detalhes-obra') {
             openBookDetails(params, loggedInUser);
             return;
         }
 
-        // Carrega o HTML da view (ex: home-view.html)
         await loadView(viewName);
 
-        // Executa a lógica JavaScript específica para cada view
-        // APÓS o HTML ter sido carregado
+        // Lógica JavaScript específica para cada view
         if (viewName === 'home') {
             const allInteractions = JSON.parse(localStorage.getItem('pluralBookInteractions')) || {};
             let userAnalysesCount = 0;
@@ -135,6 +135,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else if (viewName === 'analises') {
             renderMinhasAnalises();
+        
+        } else if (viewName === 'perfil') {
+            // *** LÓGICA PARA A PÁGINA DE PERFIL ***
+            setupProfilePage();
         }
     }
     
@@ -143,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function renderMinhasAnalises() {
         const container = document.getElementById('userAnalysesContainer');
-        if (!container) return; // Sai se o container não existir
+        if (!container) return; 
 
         const allInteractions = JSON.parse(localStorage.getItem('pluralBookInteractions')) || {};
         const userAnalyses = [];
@@ -169,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const grid = document.createElement('div');
             grid.className = 'analyses-grid';
             
-            userAnalyses.sort((a, b) => new Date(b.date) - new Date(a.date)); // Ordena por mais recente
+            userAnalyses.sort((a, b) => new Date(b.date) - new Date(a.date)); 
 
             userAnalyses.forEach(analysis => {
                 const ratingObj = (allInteractions[analysis.bookId]?.ratings || []).find(r => r.user === loggedInUser.email);
@@ -182,13 +186,78 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="star-rating-display">${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}</div>
                     <p>${analysis.text.substring(0, 150)}...</p>
                 `;
-                // Adiciona clique para navegar para o detalhe da obra
                 card.addEventListener('click', () => navigateTo('detalhes-obra', analysis.bookId));
                 grid.appendChild(card);
             });
-            container.innerHTML = ''; // Limpa o container
+            container.innerHTML = '';
             container.appendChild(grid);
         }
+    }
+
+    /**
+     * Configura a página de perfil, preenchendo o formulário e salvando as alterações.
+     */
+    function setupProfilePage() {
+        const profileForm = document.getElementById('profileForm');
+        const profileName = document.getElementById('profileName');
+        const profileEmail = document.getElementById('profileEmail');
+        const profilePassword = document.getElementById('profilePassword');
+        const profileMessage = document.getElementById('profileMessage');
+
+        if (!profileForm) return; // Sai se o formulário não existir
+
+        // 1. Preenche os dados atuais do usuário
+        const currentUser = JSON.parse(localStorage.getItem('loggedInUser'));
+        profileName.value = currentUser.name;
+        profileEmail.value = currentUser.email;
+
+        // 2. Adiciona o listener para salvar
+        profileForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const newName = profileName.value.trim();
+            const newPassword = profilePassword.value.trim();
+
+            if (!newName) {
+                profileMessage.textContent = 'O nome não pode ficar em branco.';
+                profileMessage.className = 'error';
+                return;
+            }
+
+            try {
+                // Atualiza a lista geral de usuários
+                let users = JSON.parse(localStorage.getItem('users')) || [];
+                const userIndex = users.findIndex(u => u.email === currentUser.email);
+                
+                if (userIndex > -1) {
+                    users[userIndex].name = newName;
+                    if (newPassword) {
+                        users[userIndex].password = newPassword;
+                    }
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+
+                // Atualiza o usuário logado na sessão
+                currentUser.name = newName;
+                if (newPassword) {
+                    currentUser.password = newPassword; // O auth.js usa senha em texto plano
+                }
+                localStorage.setItem('loggedInUser', JSON.stringify(currentUser));
+
+                // Feedback de sucesso
+                profileMessage.textContent = 'Perfil atualizado com sucesso!';
+                profileMessage.className = 'success';
+                profilePassword.value = ''; // Limpa o campo de senha
+
+                // Atualiza o nome no cabeçalho
+                populateHeader();
+
+            } catch (error) {
+                profileMessage.textContent = 'Erro ao salvar o perfil.';
+                profileMessage.className = 'error';
+                console.error("Erro ao salvar perfil:", error);
+            }
+        });
     }
 
     // --- Navegação e Roteamento ---
@@ -231,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 book.author.toLowerCase().includes(searchTerm)
             );
             
-            booksContainer.innerHTML = ''; // Limpa o container
+            booksContainer.innerHTML = ''; 
             if (filteredBooks.length === 0) {
                 booksContainer.innerHTML = '<p>Nenhuma obra encontrada.</p>';
             } else {
@@ -253,7 +322,6 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(html => {
                 mainContent.innerHTML = html;
-                // Verifica se a função (do detalhes-obra.js) já está carregada
                 if (typeof setupBookDetailsPage === 'function') {
                     setupBookDetailsPage(bookId, loggedInUser);
                 } else {
@@ -268,15 +336,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Inicialização ---
 
-    // Listener de clique para o botão Logout
     document.getElementById('logoutButton').addEventListener('click', () => {
         localStorage.removeItem('loggedInUser');
         window.location.href = 'index.html';
     });
 
-    // Listener para mudanças na hash (navegação)
     window.addEventListener('hashchange', handleRouteChange);
     
-    // Renderiza a view inicial com base na hash atual (ou 'home' se não houver)
     handleRouteChange();
 });

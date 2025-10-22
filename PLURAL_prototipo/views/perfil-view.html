@@ -1,0 +1,32 @@
+<header class="main-header">
+    <a href="#perfil" class="user-profile">
+        <span id="userName"></span>
+        <div class="user-avatar" id="userAvatar"></div>
+    </a>
+</header>
+<section>
+    <h2>Meu Perfil</h2>
+    <div class="card" style="max-width: 600px;">
+        <form id="profileForm">
+            <div class="form-group">
+                <label for="profileName">Nome</label>
+                <input type.text" id="profileName" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="profileEmail">Email</label>
+                <input type="email" id="profileEmail" class="form-control" disabled>
+                <small>O e-mail não pode ser alterado.</small>
+            </div>
+            <hr style="margin: 1.5rem 0;">
+            <div class="form-group">
+                <label for="profilePassword">Nova Senha</label>
+                <input type="password" id="profilePassword" class="form-control" minlength="6">
+                <small>Deixe em branco para não alterar a senha.</small>
+            </div>
+            
+            <div id="profileMessage" style="margin-top: 1rem;"></div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Salvar Alterações</button>
+        </form>
+    </div>
+</section>
