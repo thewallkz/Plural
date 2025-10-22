@@ -2,7 +2,7 @@
 
 Plural é um protótipo de dashboard para análise de obras literárias brasileiras, desenvolvido como parte de um Trabalho de Conclusão de Curso (TCC).
 
-## Estrutura do Projeto (Refatorado)
+## Estrutura do Projeto
 
 ```
 
@@ -26,7 +26,7 @@ PLURAL\_prototipo/
 
 ```
 
-## Funcionalidades Implementadas (Protótipo)
+## Funcionalidades Implementadas
 
 -   **Cadastro e Login:** Usuários podem criar contas e acessar o dashboard.
 -   **Dashboard Home:** Visualização de resumo e navegação entre seções.
