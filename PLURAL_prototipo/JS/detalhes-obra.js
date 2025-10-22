@@ -24,7 +24,6 @@ function setupBookDetailsPage(bookId, loggedInUser) {
 
     const currentBook = books.find(b => b.id === bookId);
     if (!currentBook) {
-        // Presumindo que o mainContent está na dashboard.html
         document.getElementById('mainContent').innerHTML = '<h2>Obra não encontrada</h2>'; 
         return;
     }
@@ -43,9 +42,9 @@ function setupBookDetailsPage(bookId, loggedInUser) {
     const newAnalysisForm = document.getElementById('newAnalysisForm');
     const newAnalysisText = document.getElementById('newAnalysisText');
     const analysesList = document.getElementById('analysesList');
-    // NOVO: Referência ao container dos controles
     const analysisControls = document.getElementById('analysisControls'); 
     
+    // Popula o cabeçalho estático na view de detalhes
     document.getElementById('userName').textContent = loggedInUser.name;
     document.getElementById('userAvatar').textContent = loggedInUser.name.charAt(0).toUpperCase();
     
@@ -69,40 +68,51 @@ function setupBookDetailsPage(bookId, loggedInUser) {
         bookDescription.textContent = currentBook.description;
     }
 
+    // ### FUNÇÃO DE RENDERIZAÇÃO DE ANÁLISES (MODIFICADA) ###
     function renderAnalyses() {
         analysesList.innerHTML = ''; 
 
-        // 1. FILTRA AS ANÁLISES: A CORREÇÃO DE PRIVACIDADE ESTÁ AQUI
+        // 1. Filtra análises públicas ou do próprio usuário
         const analysesToDisplay = bookData.analyses.filter(analysis => {
-            // Regra 1: O usuário logado (dono) sempre vê suas próprias análises
-            if (analysis.userEmail === loggedInUser.email) {
-                return true;
-            }
-            // Regra 2: Para análises de terceiros, só mostra se isPublic for explicitamente true.
-            // Análises antigas ou não marcadas (undefined/false) serão ocultadas.
-            return analysis.isPublic === true;
+            return analysis.isPublic === true || analysis.userEmail === loggedInUser.email;
         });
-
 
         if (analysesToDisplay.length === 0) {
             analysesList.innerHTML = '<p>Nenhuma análise pública ainda. Seja o primeiro a comentar!</p>';
             return;
         }
 
-        // 2. RENDERIZA APENAS AS ANÁLISES FILTRADAS
+        // 2. Renderiza cada análise, agora incluindo comentários
         analysesToDisplay.forEach(analysis => {
+            // Garante que a estrutura de dados exista
+            if (!analysis.comments) analysis.comments = []; 
+            if (!analysis.likes) analysis.likes = [];
+
             const isLikedByCurrentUser = analysis.likes.includes(loggedInUser.email);
-            
-            // Verifica se é uma análise privada do usuário logado (para mostrar o cadeado)
             const isPrivateComment = analysis.userEmail === loggedInUser.email && analysis.isPublic !== true;
-            
+            const privacyIndicator = isPrivateComment 
+                ? '<span class"privacy-tag">🔒 Análise Privada</span>' 
+                : '';
+
+            // --- Lógica para renderizar comentários ---
+            let commentsHtml = '';
+            if (analysis.comments.length > 0) {
+                commentsHtml = analysis.comments.map(comment => `
+                    <div class="comment-item">
+                        <div class="user-avatar small">${comment.userName.charAt(0).toUpperCase()}</div>
+                        <div class="comment-body">
+                            <p><strong>${comment.userName}</strong></p>
+                            <p>${comment.text}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            // --- Fim da lógica de comentários ---
+
             const analysisElement = document.createElement('div');
             analysisElement.className = 'analysis-item card';
             
-            const privacyIndicator = isPrivateComment 
-                ? '<span class="privacy-tag">🔒 Análise Privada</span>' 
-                : '';
-                
+            // HTML da análise, agora com a seção de comentários
             analysisElement.innerHTML = `
                 <div class="analysis-header">
                     <div class="analysis-author">
@@ -118,13 +128,25 @@ function setupBookDetailsPage(bookId, loggedInUser) {
                         <i class="fa-solid fa-thumbs-up"></i> Curtir (<span>${analysis.likes.length}</span>)
                     </button>
                 </div>
+
+                <div class="comments-section">
+                    <h5>Comentários (${analysis.comments.length})</h5>
+                    <div class="comment-list">
+                        ${commentsHtml}
+                    </div>
+                    <form class="comment-form" data-analysis-id="${analysis.id}">
+                        <input type="text" placeholder="Escreva um comentário..." required>
+                        <button type="submit" class="btn-comment">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
             `;
             analysesList.appendChild(analysisElement);
         });
     }
     
     function renderRatingsAndLikes() {
-        // Lógica mantida
         const totalRatings = bookData.ratings.length;
         const sumOfRatings = bookData.ratings.reduce((sum, r) => sum + r.rating, 0);
         const average = totalRatings > 0 ? (sumOfRatings / totalRatings) : 0;
@@ -144,7 +166,6 @@ function setupBookDetailsPage(bookId, loggedInUser) {
 
     // --- Lógica de Interação da Text Box (Foco/Blur) ---
     
-    // Expande o campo e controles ao ganhar foco
     if (newAnalysisText && analysisControls) {
         newAnalysisText.addEventListener('focus', () => {
             newAnalysisText.classList.add('expanded');
@@ -153,10 +174,8 @@ function setupBookDetailsPage(bookId, loggedInUser) {
         });
     }
 
-    // Colapsa o campo e controles ao perder foco, SE estiver vazio
     if (newAnalysisText && analysisControls) {
         newAnalysisText.addEventListener('blur', () => {
-            // Usa um pequeno timeout para permitir o clique no botão de envio
             setTimeout(() => {
                  if (newAnalysisText.value.trim() === '') {
                     newAnalysisText.classList.remove('expanded');
@@ -169,7 +188,6 @@ function setupBookDetailsPage(bookId, loggedInUser) {
 
     // --- Lógica de Eventos ---
     
-    // Avaliar com estrelas (Mantida)
     userRatingStars.forEach(star => {
         star.addEventListener('click', () => {
             const ratingValue = parseInt(star.dataset.value, 10);
@@ -185,7 +203,6 @@ function setupBookDetailsPage(bookId, loggedInUser) {
         });
     });
     
-    // Curtir a obra (Mantida)
     likeBookButton.addEventListener('click', () => {
         const userEmail = loggedInUser.email;
         const likeIndex = bookData.likes.indexOf(userEmail);
@@ -199,13 +216,12 @@ function setupBookDetailsPage(bookId, loggedInUser) {
         renderRatingsAndLikes();
     });
 
-    // Enviar nova análise (Lógica de submissão com checkbox)
+    // ### LISTENER DE SUBMISSÃO DE ANÁLISE (MODIFICADO) ###
     newAnalysisForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const text = newAnalysisText.value.trim();
         if (!text) return;
         
-        // CAPTURA O VALOR FUNCIONAL DO CHECKBOX
         const isPublic = document.getElementById('isPublic').checked; 
 
         const newAnalysis = {
@@ -215,14 +231,14 @@ function setupBookDetailsPage(bookId, loggedInUser) {
             text: text,
             date: new Date().toISOString(),
             likes: [],
-            isPublic: isPublic // Valor salvo: true ou false
+            isPublic: isPublic,
+            comments: [] // <-- Adiciona a array de comentários
         };
         bookData.analyses.unshift(newAnalysis); 
         saveDb(db);
-        renderAnalyses();
-        newAnalysisText.value = '';
+        renderAnalyses(); // Re-renderiza tudo
         
-        // Colapsa a caixa de volta após o envio
+        newAnalysisText.value = '';
         if (newAnalysisText && analysisControls) {
             newAnalysisText.classList.remove('expanded');
             analysisControls.classList.remove('expanded');
@@ -231,7 +247,7 @@ function setupBookDetailsPage(bookId, loggedInUser) {
         }
     });
     
-    // Curtir uma análise específica (Mantida)
+    // Listener para "Curtir" uma análise
     analysesList.addEventListener('click', (e) => {
         const likeButton = e.target.closest('.btn-like-analysis');
         if (!likeButton) return;
@@ -249,7 +265,43 @@ function setupBookDetailsPage(bookId, loggedInUser) {
                 analysis.likes.push(userEmail); 
             }
             saveDb(db);
-            renderAnalyses();
+            renderAnalyses(); // Re-renderiza para atualizar a contagem de likes
+        }
+    });
+
+    // ### NOVO LISTENER PARA SUBMISSÃO DE COMENTÁRIO ###
+    analysesList.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        // Verifica se o evento foi disparado por um formulário de comentário
+        if (!e.target.classList.contains('comment-form')) return;
+
+        const form = e.target;
+        const analysisId = parseInt(form.dataset.analysisId, 10);
+        const commentInput = form.querySelector('input');
+        const commentText = commentInput.value.trim();
+
+        if (!commentText) return; // Não envia comentário vazio
+
+        // Encontra a análise correta no banco de dados
+        const analysis = bookData.analyses.find(a => a.id === analysisId);
+        
+        if (analysis) {
+            const newComment = {
+                id: Date.now(),
+                userName: loggedInUser.name,
+                userEmail: loggedInUser.email,
+                text: commentText
+            };
+
+            // Garante que a array exista antes de adicionar
+            if (!analysis.comments) {
+                analysis.comments = [];
+            }
+            
+            analysis.comments.push(newComment);
+            saveDb(db); // Salva o banco de dados com o novo comentário
+            renderAnalyses(); // Re-renderiza tudo para mostrar o novo comentário
         }
     });
 
