@@ -1,5 +1,7 @@
 # Plural
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/6d4c6ca0-6d3b-4ec7-a015-ed20c65eae6a/deploy-status)](https://app.netlify.com/sites/pluralproto/deploys)
+
 Plural é um protótipo de dashboard para análise de obras literárias brasileiras, desenvolvido como um Trabalho de Conclusão de Curso (TCC).
 
 ## Estrutura do Projeto
