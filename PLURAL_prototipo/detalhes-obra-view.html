@@ -25,35 +25,42 @@
             <div class="book-info">
                 <h2 id="bookTitle">Título</h2>
                 <h3 id="bookAuthor">Autor</h3>
+
+                <div class="average-rating-display">
+                    <span class="star-rating-display large" id="averageStars">☆☆☆☆☆</span>
+                    <span class="ratings-count-display" id="ratingsCount">(0 avaliações)</span>
+                </div>
+
                 <h4>Descrição</h4>
                 <p id="bookDescription">Descrição...</p>
             </div>
         </section>
 
-        <section class="book-interactions">
-            <h2>Análises e Avaliações</h2>
-
-            <div class="interaction-summary card">
-                <div class="average-rating">
-                    <h4>Avaliação Média</h4>
-                    <div class="star-rating-display" id="averageStars"></div>
-                    <span id="ratingsCount">(0 avaliações)</span>
-                </div>
-                <div class="user-actions">
-                    <h4>Sua Avaliação</h4>
-                    <div class="star-rating" id="userRatingStars">
-                        <i class="fa-solid fa-star" data-value="1"></i>
-                        <i class="fa-solid fa-star" data-value="2"></i>
-                        <i class="fa-solid fa-star" data-value="3"></i>
-                        <i class="fa-solid fa-star" data-value="4"></i>
-                        <i class="fa-solid fa-star" data-value="5"></i>
+        <section class="user-interaction-section">
+            <div class="card">
+                <div class="user-actions-container">
+                    <div class="user-rating-action">
+                        <h4>Sua Avaliação</h4>
+                        <div class="star-rating" id="userRatingStars">
+                            <i class="fa-solid fa-star" data-value="1"></i>
+                            <i class="fa-solid fa-star" data-value="2"></i>
+                            <i class="fa-solid fa-star" data-value="3"></i>
+                            <i class="fa-solid fa-star" data-value="4"></i>
+                            <i class="fa-solid fa-star" data-value="5"></i>
+                        </div>
                     </div>
-                    <button id="likeBookButton" class="btn btn-icon">
-                        <i class="fa-solid fa-heart"></i> Curtir Obra (<span id="bookLikesCount">0</span>)
-                    </button>
+                    <div class="user-like-action">
+                         <button id="likeBookButton" class="btn btn-icon like-button">
+                             <i class="fa-solid fa-heart"></i> 
+                             <span>Curtir Obra (<span id="bookLikesCount">0</span>)</span>
+                         </button>
+                    </div>
                 </div>
             </div>
+        </section>
 
+        <section class="book-analysis-section">
+             <h2>Análises</h2>
             <div class="new-analysis-form">
                 <h3>Deixe sua análise</h3>
                 <form id="newAnalysisForm">
@@ -74,7 +81,8 @@
                 </form>
             </div>
 
-            <div class="analyses-list" id="analysesList"></div>
+            <div class="analyses-list" id="analysesList">
+                </div>
         </section>
     </div>
 </body>

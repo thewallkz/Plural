@@ -1,5 +1,5 @@
 function setupBookDetailsPage(bookId, loggedInUser) {
-    // Simula a busca de dados de livros (os dados são os mesmos que você forneceu)
+    // Simula a busca de dados de livros
     const books = [
         { id: 1, title: 'Dom Casmurro', author: 'Machado de Assis', cover: 'https://m.media-amazon.com/images/I/61x1ZHomWUL.jpg', description: 'Dom Casmurro é um romance escrito por Machado de Assis...', genre: 'Romance' },
         { id: 2, title: 'O Cortiço', author: 'Aluísio Azevedo', cover: 'https://m.media-amazon.com/images/I/61hI7QLrTkL._UF1000,1000_QL80_.jpg', description: 'Obra de Aluísio Azevedo que denuncia a exploração social...', genre: 'Naturalismo' },
@@ -24,7 +24,7 @@ function setupBookDetailsPage(bookId, loggedInUser) {
 
     const currentBook = books.find(b => b.id === bookId);
     if (!currentBook) {
-        document.getElementById('mainContent').innerHTML = '<h2>Obra não encontrada</h2>'; 
+        document.getElementById('mainContent').innerHTML = '<h2>Obra não encontrada</h2>';
         return;
     }
 
@@ -42,12 +42,11 @@ function setupBookDetailsPage(bookId, loggedInUser) {
     const newAnalysisForm = document.getElementById('newAnalysisForm');
     const newAnalysisText = document.getElementById('newAnalysisText');
     const analysesList = document.getElementById('analysesList');
-    const analysisControls = document.getElementById('analysisControls'); 
-    
-    // Popula o cabeçalho estático na view de detalhes
+    const analysisControls = document.getElementById('analysisControls');
+
     document.getElementById('userName').textContent = loggedInUser.name;
     document.getElementById('userAvatar').textContent = loggedInUser.name.charAt(0).toUpperCase();
-    
+
     // --- Gerenciamento de Dados com localStorage ---
     const getDb = () => JSON.parse(localStorage.getItem('pluralBookInteractions')) || {};
     const saveDb = (db) => localStorage.setItem('pluralBookInteractions', JSON.stringify(db));
@@ -68,67 +67,74 @@ function setupBookDetailsPage(bookId, loggedInUser) {
         bookDescription.textContent = currentBook.description;
     }
 
-    // ### FUNÇÃO DE RENDERIZAÇÃO DE ANÁLISES (MODIFICADA) ###
     function renderAnalyses() {
-        analysesList.innerHTML = ''; 
+        analysesList.innerHTML = '';
 
-        // 1. Filtra análises públicas ou do próprio usuário
         const analysesToDisplay = bookData.analyses.filter(analysis => {
             return analysis.isPublic === true || analysis.userEmail === loggedInUser.email;
-        });
+        }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
         if (analysesToDisplay.length === 0) {
-            analysesList.innerHTML = '<p>Nenhuma análise pública ainda. Seja o primeiro a comentar!</p>';
+            analysesList.innerHTML = '<p>Nenhuma análise ainda. Seja o primeiro a escrever!</p>';
             return;
         }
 
-        // 2. Renderiza cada análise, agora incluindo comentários
         analysesToDisplay.forEach(analysis => {
-            // Garante que a estrutura de dados exista
-            if (!analysis.comments) analysis.comments = []; 
             if (!analysis.likes) analysis.likes = [];
+            if (!analysis.comments) analysis.comments = [];
 
-            const isLikedByCurrentUser = analysis.likes.includes(loggedInUser.email);
-            const isPrivateComment = analysis.userEmail === loggedInUser.email && analysis.isPublic !== true;
-            const privacyIndicator = isPrivateComment 
-                ? '<span class"privacy-tag">🔒 Análise Privada</span>' 
-                : '';
+            const isLikedByCurrentUser_Analysis = analysis.likes.includes(loggedInUser.email);
+            const isPrivateAnalysis = analysis.userEmail === loggedInUser.email && analysis.isPublic !== true;
+            const privacyIndicator = isPrivateAnalysis ? '<span class="privacy-tag">🔒 Análise Privada</span>' : '';
 
-            // --- Lógica para renderizar comentários ---
+            // --- Renderiza comentários ---
             let commentsHtml = '';
             if (analysis.comments.length > 0) {
-                commentsHtml = analysis.comments.map(comment => `
+                const sortedComments = analysis.comments.sort((a, b) => a.id - b.id);
+                commentsHtml = sortedComments.map(comment => {
+                    if (!comment.likes) comment.likes = [];
+                    const isLikedByCurrentUser_Comment = comment.likes.includes(loggedInUser.email);
+                    return `
                     <div class="comment-item">
                         <div class="user-avatar small">${comment.userName.charAt(0).toUpperCase()}</div>
                         <div class="comment-body">
                             <p><strong>${comment.userName}</strong></p>
                             <p>${comment.text}</p>
+                            <div class="comment-actions">
+                                <button class="btn-like-comment ${isLikedByCurrentUser_Comment ? 'liked' : ''}" data-analysis-id="${analysis.id}" data-comment-id="${comment.id}">
+                                    <i class="fa-solid fa-thumbs-up"></i>
+                                    <span class="like-count">${comment.likes.length}</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                `).join('');
+                    `;
+                }).join('');
             }
-            // --- Fim da lógica de comentários ---
+            // --- Fim comentários ---
 
             const analysisElement = document.createElement('div');
             analysisElement.className = 'analysis-item card';
-            
-            // HTML da análise, agora com a seção de comentários
+
+            // ### HTML DA ANÁLISE MODIFICADO ###
+            // Botão Curtir movido para o cabeçalho, antes da data
             analysisElement.innerHTML = `
                 <div class="analysis-header">
                     <div class="analysis-author">
                         <div class="user-avatar small">${analysis.userName.charAt(0).toUpperCase()}</div>
                         <span>${analysis.userName}</span>
                     </div>
-                    <span class="analysis-date">${new Date(analysis.date).toLocaleDateString('pt-BR')}</span>
+                    <div class="analysis-meta">
+                        <button class="btn-like-analysis ${isLikedByCurrentUser_Analysis ? 'liked' : ''}" data-analysis-id="${analysis.id}">
+                            <i class="fa-solid fa-thumbs-up"></i> <span class="like-count">${analysis.likes.length}</span>
+                        </button>
+                        <span class="analysis-date">${new Date(analysis.date).toLocaleDateString('pt-BR')}</span>
+                    </div>
                 </div>
-                ${privacyIndicator} 
-                <div class="analysis-body"><p>${analysis.text}</p></div>
-                <div class="analysis-actions">
-                    <button class="btn-like-analysis ${isLikedByCurrentUser ? 'liked' : ''}" data-analysis-id="${analysis.id}">
-                        <i class="fa-solid fa-thumbs-up"></i> Curtir (<span>${analysis.likes.length}</span>)
-                    </button>
+                ${privacyIndicator}
+                <div class="analysis-body">
+                    <p>${analysis.text}</p>
                 </div>
-
                 <div class="comments-section">
                     <h5>Comentários (${analysis.comments.length})</h5>
                     <div class="comment-list">
@@ -145,163 +151,155 @@ function setupBookDetailsPage(bookId, loggedInUser) {
             analysesList.appendChild(analysisElement);
         });
     }
-    
+
     function renderRatingsAndLikes() {
         const totalRatings = bookData.ratings.length;
         const sumOfRatings = bookData.ratings.reduce((sum, r) => sum + r.rating, 0);
         const average = totalRatings > 0 ? (sumOfRatings / totalRatings) : 0;
-        
-        averageStars.innerHTML = '★'.repeat(Math.round(average)) + '☆'.repeat(5 - Math.round(average));
-        ratingsCount.textContent = `(${totalRatings} ${totalRatings === 1 ? 'avaliação' : 'avaliações'})`;
+
+        const averageStarsDisplay = document.getElementById('averageStars');
+        const ratingsCountDisplay = document.getElementById('ratingsCount');
+
+        if (averageStarsDisplay && ratingsCountDisplay) {
+            averageStarsDisplay.innerHTML = '★'.repeat(Math.round(average)) + '☆'.repeat(5 - Math.round(average));
+            ratingsCountDisplay.textContent = `(${totalRatings} ${totalRatings === 1 ? 'avaliação' : 'avaliações'})`;
+        }
 
         const currentUserRating = bookData.ratings.find(r => r.user === loggedInUser.email);
         userRatingStars.forEach(star => {
             star.classList.toggle('selected', currentUserRating && star.dataset.value <= currentUserRating.rating);
         });
-        
+
         const isBookLiked = bookData.likes.includes(loggedInUser.email);
-        likeBookButton.querySelector('.fa-heart').classList.toggle('liked', isBookLiked);
-        bookLikesCount.textContent = bookData.likes.length;
+        if (likeBookButton) {
+            likeBookButton.querySelector('.fa-heart').classList.toggle('liked', isBookLiked);
+            bookLikesCount.textContent = bookData.likes.length;
+        }
     }
 
     // --- Lógica de Interação da Text Box (Foco/Blur) ---
-    
     if (newAnalysisText && analysisControls) {
         newAnalysisText.addEventListener('focus', () => {
             newAnalysisText.classList.add('expanded');
             analysisControls.classList.remove('collapsed');
             analysisControls.classList.add('expanded');
         });
-    }
-
-    if (newAnalysisText && analysisControls) {
         newAnalysisText.addEventListener('blur', () => {
             setTimeout(() => {
-                 if (newAnalysisText.value.trim() === '') {
+                 const activeElement = document.activeElement;
+                 if (newAnalysisText.value.trim() === '' && !analysisControls.contains(activeElement) && activeElement !== newAnalysisText) {
                     newAnalysisText.classList.remove('expanded');
                     analysisControls.classList.remove('expanded');
                     analysisControls.classList.add('collapsed');
                 }
-            }, 100);
+            }, 150);
         });
     }
 
     // --- Lógica de Eventos ---
-    
+
+    // Avaliar Obra com estrelas
     userRatingStars.forEach(star => {
         star.addEventListener('click', () => {
             const ratingValue = parseInt(star.dataset.value, 10);
             let userRating = bookData.ratings.find(r => r.user === loggedInUser.email);
-
-            if (userRating) {
-                userRating.rating = ratingValue;
-            } else {
-                bookData.ratings.push({ user: loggedInUser.email, rating: ratingValue });
-            }
+            if (userRating) userRating.rating = ratingValue;
+            else bookData.ratings.push({ user: loggedInUser.email, rating: ratingValue });
             saveDb(db);
             renderRatingsAndLikes();
         });
     });
-    
-    likeBookButton.addEventListener('click', () => {
-        const userEmail = loggedInUser.email;
-        const likeIndex = bookData.likes.indexOf(userEmail);
 
-        if (likeIndex > -1) {
-            bookData.likes.splice(likeIndex, 1);
-        } else {
-            bookData.likes.push(userEmail);
-        }
-        saveDb(db);
-        renderRatingsAndLikes();
-    });
+    // Curtir a Obra
+    if (likeBookButton) {
+        likeBookButton.addEventListener('click', () => {
+            const userEmail = loggedInUser.email;
+            const likeIndex = bookData.likes.indexOf(userEmail);
+            if (likeIndex > -1) bookData.likes.splice(likeIndex, 1);
+            else bookData.likes.push(userEmail);
+            saveDb(db);
+            renderRatingsAndLikes();
+        });
+    }
 
-    // ### LISTENER DE SUBMISSÃO DE ANÁLISE (MODIFICADO) ###
+    // Enviar nova análise
     newAnalysisForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const text = newAnalysisText.value.trim();
         if (!text) return;
-        
-        const isPublic = document.getElementById('isPublic').checked; 
-
+        const isPublic = document.getElementById('isPublic').checked;
         const newAnalysis = {
-            id: Date.now(),
-            userName: loggedInUser.name,
-            userEmail: loggedInUser.email,
-            text: text,
-            date: new Date().toISOString(),
-            likes: [],
-            isPublic: isPublic,
-            comments: [] // <-- Adiciona a array de comentários
+            id: Date.now(), userName: loggedInUser.name, userEmail: loggedInUser.email,
+            text: text, date: new Date().toISOString(), likes: [], isPublic: isPublic, comments: []
         };
-        bookData.analyses.unshift(newAnalysis); 
+        bookData.analyses.unshift(newAnalysis);
         saveDb(db);
-        renderAnalyses(); // Re-renderiza tudo
-        
+        renderAnalyses();
         newAnalysisText.value = '';
-        if (newAnalysisText && analysisControls) {
-            newAnalysisText.classList.remove('expanded');
-            analysisControls.classList.remove('expanded');
-            analysisControls.classList.add('collapsed');
-            document.getElementById('isPublic').checked = false; 
-        }
+        document.getElementById('isPublic').checked = false;
+        newAnalysisText.classList.remove('expanded');
+        analysisControls.classList.remove('expanded');
+        analysisControls.classList.add('collapsed');
     });
-    
-    // Listener para "Curtir" uma análise
+
+    // Listener de clicks na lista de análsies (Curtir Análise / Curtir Comentário)
     analysesList.addEventListener('click', (e) => {
-        const likeButton = e.target.closest('.btn-like-analysis');
-        if (!likeButton) return;
-        
-        const analysisId = parseInt(likeButton.dataset.analysisId, 10);
-        const analysis = bookData.analyses.find(a => a.id === analysisId);
-        
-        if (analysis) {
-            const userEmail = loggedInUser.email;
-            const likeIndex = analysis.likes.indexOf(userEmail);
-
-            if (likeIndex > -1) {
-                analysis.likes.splice(likeIndex, 1); 
-            } else {
-                analysis.likes.push(userEmail); 
+        // --- Curtir Análise ---
+        const likeAnalysisButton = e.target.closest('.btn-like-analysis');
+        if (likeAnalysisButton) {
+            const analysisId = parseInt(likeAnalysisButton.dataset.analysisId, 10);
+            const analysis = bookData.analyses.find(a => a.id === analysisId);
+            if (analysis) {
+                const userEmail = loggedInUser.email;
+                if (!analysis.likes) analysis.likes = [];
+                const likeIndex = analysis.likes.indexOf(userEmail);
+                if (likeIndex > -1) analysis.likes.splice(likeIndex, 1);
+                else analysis.likes.push(userEmail);
+                saveDb(db);
+                renderAnalyses();
             }
-            saveDb(db);
-            renderAnalyses(); // Re-renderiza para atualizar a contagem de likes
+            return;
+        }
+        // --- Curtir Comentário ---
+        const likeCommentButton = e.target.closest('.btn-like-comment');
+        if (likeCommentButton) {
+            const analysisId = parseInt(likeCommentButton.dataset.analysisId, 10);
+            const commentId = parseInt(likeCommentButton.dataset.commentId, 10);
+            const analysis = bookData.analyses.find(a => a.id === analysisId);
+            if (analysis?.comments) {
+                 const comment = analysis.comments.find(c => c.id === commentId);
+                 if (comment) {
+                    const userEmail = loggedInUser.email;
+                    if (!comment.likes) comment.likes = [];
+                    const likeIndex = comment.likes.indexOf(userEmail);
+                    if (likeIndex > -1) comment.likes.splice(likeIndex, 1);
+                    else comment.likes.push(userEmail);
+                    saveDb(db);
+                    renderAnalyses();
+                 }
+            }
         }
     });
 
-    // ### NOVO LISTENER PARA SUBMISSÃO DE COMENTÁRIO ###
+    // Listener para Submissão de Comentário
     analysesList.addEventListener('submit', (e) => {
         e.preventDefault();
-        
-        // Verifica se o evento foi disparado por um formulário de comentário
         if (!e.target.classList.contains('comment-form')) return;
-
         const form = e.target;
         const analysisId = parseInt(form.dataset.analysisId, 10);
         const commentInput = form.querySelector('input');
         const commentText = commentInput.value.trim();
-
-        if (!commentText) return; // Não envia comentário vazio
-
-        // Encontra a análise correta no banco de dados
+        if (!commentText) return;
         const analysis = bookData.analyses.find(a => a.id === analysisId);
-        
         if (analysis) {
             const newComment = {
-                id: Date.now(),
-                userName: loggedInUser.name,
-                userEmail: loggedInUser.email,
-                text: commentText
+                id: Date.now(), userName: loggedInUser.name, userEmail: loggedInUser.email,
+                text: commentText, likes: []
             };
-
-            // Garante que a array exista antes de adicionar
-            if (!analysis.comments) {
-                analysis.comments = [];
-            }
-            
+            if (!analysis.comments) analysis.comments = [];
             analysis.comments.push(newComment);
-            saveDb(db); // Salva o banco de dados com o novo comentário
-            renderAnalyses(); // Re-renderiza tudo para mostrar o novo comentário
+            saveDb(db);
+            renderAnalyses();
         }
     });
 
