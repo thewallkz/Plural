@@ -41,7 +41,7 @@ PLURAL\_prototipo/
 -   **Notificações:** Página com lista de notificações (atualmente simuladas).
 -   **Persistência Local:** Dados de usuários e interações são armazenados no `localStorage` do navegador.
 
-## Como Executar
+## Como acessar
 
 1.  Acesse `https://pluralproto.netlify.app/` em seu navegador.
 2.  Crie uma conta ou faça login para acessar o dashboard.
